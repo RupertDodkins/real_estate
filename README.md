@@ -1,4 +1,5 @@
-Real estate calculations
+# Real estate calculations
 
 Installation
-pip install -e .
+--------------
+`pip install -e .`
