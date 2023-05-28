@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from IPython.display import display, HTML
 
 from real_estate.constants import yearly_months
 
@@ -29,7 +30,7 @@ class YearlySummary:
             
             annual_data['Operating Expenses'] = self.operating_expenses(year)
             annual_data['Mortgage Payment'] = self.acq.price['monthly_PI'] * self.acq_months[year] + self.refi.price['monthly_PI'] * self.refi_months[year]
-            annual_data['Total Annual Expenses'] = annual_data['Operating Expenses'] + annual_data['Mortgage Payment'] + rehab.price['total_cost'] * self.rehab_months[year]/self.rehab.time['total_months']
+            annual_data['Total Annual Expenses'] = annual_data['Operating Expenses'] + annual_data['Mortgage Payment'] + self.rehab.price['total_cost'] * self.rehab_months[year]/self.rehab.time['total_months']
             
             annual_data['Total Annual Cashflow'] = annual_data['Total Annual Income'] - annual_data['Total Annual Expenses']
             annual_data['Cash on Cash ROI'] = annual_data['Total Annual Cashflow'] / self.cash_required
