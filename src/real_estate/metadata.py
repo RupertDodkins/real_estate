@@ -4,15 +4,18 @@ from real_estate.constants import yearly_months
 
 class Acquisition():
     """ Could inherent a Mortgage object if it could contain several methods """
-    def __init__(self, purchase_price, downpayment, yearly_interest, value_appreciation, monthly_taxes):
+    def __init__(self, purchase_price, downpayment, yearly_interest, value_appreciation, monthly_HOA=0, 
+                 yearly_insurance=1250, yearly_taxes=0, monthly_utilities=200):
         self.time = {}
         self.price = {
             'home_value': purchase_price,
             'downpayment': downpayment,
             'mortgage': np.nan,
             'monthly_PI': np.nan,
-            'monthly_taxes': monthly_taxes,
-            
+            'yearly_taxes': yearly_taxes,
+            'monthly_HOA': monthly_HOA,
+            'yearly_insurance': yearly_insurance,
+            'monthly_utilities': monthly_utilities
         } 
         self.exponent ={
             'yearly_interest': yearly_interest,
@@ -27,10 +30,19 @@ class Acquisition():
         self.price['loan_fees'] = 0.01 * self.price['home_value']
         self.price['mortgage'] = self.price['home_value'] - self.price['downpayment'] + self.price['loan_fees']
         self.price['closing'] = self.price['home_value'] * 0.01 
-
+        if self.price['yearly_taxes'] == 0:
+            self.price['yearly_taxes'] = self.price['home_value'] * 0.0111
+        self.price['monthly_taxes'] = self.price['yearly_taxes']/yearly_months
+        self.price['monthly_insurance'] = self.price['yearly_insurance']/yearly_months
         self.mort = Mortgage(self.exponent['yearly_interest'], self.price['mortgage'])
+        self.price['owning_expenses'] = self.sum_owning_expenses()
         self.price['monthly_PI'] = self.mort.monthly_PI
 
+    def sum_owning_expenses(self):
+        own_ex = self.price['monthly_taxes'] + self.price['monthly_insurance'] + self.price['monthly_HOA'] + self.price['monthly_utilities']
+        own_ex += self.mort.df.iloc[0]['Mortgage Insurance']
+        return own_ex
+    
     def __str__(self):
         return (
             '\nAcquisition:\n'
@@ -43,7 +55,7 @@ class Acquisition():
          )
         
 class Rehab():
-    def __init__(self, rehab_months, total_cost, monthly_PI, monthly_taxes, monthly_insurance=0, other_costs = 0):
+    def __init__(self, rehab_months, total_cost, monthly_PI, owning_expenses, monthly_insurance=0, other_costs = 0):
         self.time = {
             'total_months' : rehab_months
         }
@@ -53,7 +65,7 @@ class Rehab():
             'other': other_costs,
             'holding_cost': np.nan,
             'monthly_PI': monthly_PI,
-            'monthly_taxes': monthly_taxes
+            'owning_expenses': owning_expenses
         } 
         self.exponent = {
         }
@@ -62,8 +74,8 @@ class Rehab():
         
     def derive_properties(self):
         self.price['monthly_rehab'] = self.price['total_cost']*self.time['total_months']/yearly_months
-        self.price['holding_cost'] = (self.price['monthly_PI'] + self.price['monthly_taxes']) * self.time['total_months']
-        self.price['monthly_total'] = self.price['monthly_rehab'] + self.price['monthly_taxes'] + self.price['monthly_PI']
+        self.price['holding_cost'] = (self.price['monthly_PI'] + self.price['owning_expenses']) * self.time['total_months']
+        self.price['monthly_total'] = self.price['monthly_rehab'] + self.price['owning_expenses'] + self.price['monthly_PI']
         
     def __str__(self):
         return (
@@ -71,13 +83,13 @@ class Rehab():
             f"Holding costs: ${self.price['holding_cost']:.2f}\n"
             f"Monthly P&I: ${self.price['monthly_PI']:.2f}\n"
             f"Rehab time: {self.time['total_months']} months\n"
-            f"Monthly taxes: ${self.price['monthly_taxes']}"
+            f"Owning expenses: ${self.price['owning_expenses']}"
         )
     
 class PreReFi_Rent():
     """ Could inherent a Mortgage object if """
     def __init__(self, monthly_rent, vacancy_frac, repairs_frac, capex_frac, total_time, 
-                monthly_PI, rent_appreciation, opex_inflation, monthly_taxes):
+                monthly_PI, rent_appreciation, opex_inflation, owning_expenses):
         self.time = {
             'total_months': total_time
         }
@@ -86,7 +98,7 @@ class PreReFi_Rent():
             'vacancy_frac': vacancy_frac,
             'repairs_frac': repairs_frac,
             'capex_frac': capex_frac,
-            'monthly_taxes': monthly_taxes,
+            'owning_expenses': owning_expenses,
             'monthly_PI': monthly_PI
         } 
         self.exponent = {
@@ -106,7 +118,7 @@ class PreReFi_Rent():
 
     def sum_opex(self):
         exp_sum = self.price['monthly_vacancy'] + self.price['monthly_capex'] \
-        + self.price['monthly_taxes'] + self.price['monthly_repairs'] #+ self.price['monthly_PI']
+        + self.price['owning_expenses'] + self.price['monthly_repairs'] #+ self.price['monthly_PI']
         return exp_sum
     
     def __str__(self):
@@ -121,7 +133,7 @@ class PreReFi_Rent():
 class Refinance():
     """ Could inherent a Mortgage object if """
     def __init__(self, monthly_rent, home_value, vacancy_frac, repairs_frac, capex_frac, refinance_months, yearly_interest, value_appreciation,
-                 rent_appreciation, opex_inflation, monthly_taxes):
+                 rent_appreciation, opex_inflation, owning_expenses):
         self.time =  {
             'total_months': refinance_months
         }
@@ -132,7 +144,7 @@ class Refinance():
             'repairs_frac': repairs_frac,
             'capex_frac': capex_frac,
             'monthly_PI': np.nan,
-            'monthly_taxes': monthly_taxes
+            'owning_expenses': owning_expenses
         } 
         self.exponent = {
             'yearly_interest': yearly_interest, #0#0.065
@@ -160,7 +172,7 @@ class Refinance():
 
     def sum_opex(self):
         exp_sum = self.price['monthly_vacancy'] + self.price['monthly_capex'] \
-        + self.price['monthly_taxes'] + self.price['monthly_repairs'] #+ self.price['monthly_PI']
+        + self.price['owning_expenses'] + self.price['monthly_repairs'] #+ self.price['monthly_PI']
         return exp_sum
     
     def __str__(self):

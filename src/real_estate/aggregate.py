@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from IPython.display import display, HTML
+from IPython.display import display
 
 from real_estate.constants import yearly_months
 
