@@ -51,7 +51,9 @@ class Acquisition():
             f"Loan Points/Fees: ${self.price['loan_fees']}\n"
             f"Loan Interest Rate: {self.exponent['yearly_interest']*100}%\n"
             f"Monthly P&I: ${self.price['monthly_PI']:.2f}\n"
-            f"Home Value Appreciaion: ${self.exponent['yearly_val_apprec']*100}%"
+            f"Owning Expenses: ${self.price['owning_expenses']:.2f}\n"
+            f"Monthly Outflow: ${self.price['owning_expenses']+self.price['monthly_PI']:.2f}\n"
+            f"Home Value Appreciaion: {self.exponent['yearly_val_apprec']*100}%"
          )
         
 class Rehab():
@@ -80,6 +82,7 @@ class Rehab():
     def __str__(self):
         return (
             '\nRehab:\n'
+            f"Rehab cost: ${self.price['total_cost']:.2f}\n"
             f"Holding costs: ${self.price['holding_cost']:.2f}\n"
             f"Monthly P&I: ${self.price['monthly_PI']:.2f}\n"
             f"Rehab time: {self.time['total_months']} months\n"

@@ -61,7 +61,8 @@ def property_performance(
         downpayment=downpayment, 
         yearly_interest=acq_yearly_interest, 
         value_appreciation=value_appreciation, 
-        yearly_taxes=yearly_taxes
+        yearly_taxes=yearly_taxes,
+        yearly_insurance=yearly_insurance
         )
     rehab = Rehab(
         rehab_months=rehab_months, 
@@ -109,4 +110,4 @@ def property_performance(
     plot_timeseries(stocks_df[metric], 
                     df[metric], 
                     ['S&P', 'Real Estate', metric])
-    return pre_refi_duration
+    return df
