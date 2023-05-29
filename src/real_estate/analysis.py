@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 from real_estate import mortgage
-from real_estate.metadata import Acquisition, Rehab, PreReFi_Rent, Refinance, Margin
+from real_estate.metadata import Acquisition, Rehab, PreReFi_Rent, Refinance, Margin, Renter
 from real_estate.aggregate import YearlySummary, stocks_rent_performance
 from real_estate.plots import plot_timeseries
 from real_estate.constants import yearly_months
@@ -26,7 +26,7 @@ def property_performance(
     yearly_insurance = 70,
 
     # initial rental period
-    monthly_rent = 3e3,
+    monthly_rent_income = 3e3,
     vacancy_frac = 0.05,
     repairs_frac = 0.05,
     capex_frac = 0.05,
@@ -39,7 +39,8 @@ def property_performance(
     margin_multiplier = 1.5,
     stock_yearly_interest=0.05,
     stock_value_appreciation=0.1,
-    
+    renter_monthly_opex = 100,
+    monthly_rent_expense=2e3,
     title=''
 ):
     pre_refi_duration = refinance_months-rehab_months
@@ -58,7 +59,7 @@ def property_performance(
         owning_expenses=acq.price['owning_expenses']
         )
     pre_refi = PreReFi_Rent(
-        monthly_rent=monthly_rent, 
+        monthly_rent=monthly_rent_income, 
         vacancy_frac=vacancy_frac, 
         repairs_frac=repairs_frac, 
         capex_frac=capex_frac,
@@ -69,7 +70,7 @@ def property_performance(
         owning_expenses=acq.price['owning_expenses']
         )
     refi = Refinance(
-        monthly_rent=monthly_rent, 
+        monthly_rent=monthly_rent_income, 
         home_value=after_repair_value, 
         vacancy_frac=vacancy_frac, 
         repairs_frac=repairs_frac, 
@@ -100,9 +101,16 @@ def property_performance(
         yearly_interest=stock_yearly_interest, 
         value_appreciation=stock_value_appreciation, 
         )
+    rent = Renter(
+        monthly_rent=monthly_rent_expense, 
+        monthly_opex=renter_monthly_opex, 
+        rent_appreciation=rent_appreciation, 
+        opex_inflation=opex_inflation, 
+        )
 
     print(str(margi))
-    stocks_df = stocks_rent_performance(margi)
+    print(str(rent))
+    stocks_df = stocks_rent_performance(margi, rent)
 
     df_titles=['Real Estate', 'S&P + rent']
     title= f'{df_titles[0]} vs {df_titles[1]}'

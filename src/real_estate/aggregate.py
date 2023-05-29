@@ -102,7 +102,7 @@ class YearlySummary:
         return pre_refi_opex + refi_opex
 
 
-def stocks_rent_performance(margi, total_years=30, monthly_opex=200, monthly_rent=2000):
+def stocks_rent_performance(margi, rent, total_years=30):
     """
     Function to generate a pandas DataFrame for a timeseries of stock performance.
 
@@ -116,18 +116,17 @@ def stocks_rent_performance(margi, total_years=30, monthly_opex=200, monthly_ren
         A pandas DataFrame with columns 'Year' and 'Value' representing the stock value for each year.
     """
     years = np.arange(total_years)
-    values = margi.price['stock_value'] * np.power(1 + margi.exponent['yearly_val_apprec'], years)
     df = pd.DataFrame(
         {
         'Year': years, 
         # 'Return on Initial Investment': df['Value']/df.iloc[0]['Value'],
         'Total Annual Income': 0,
-        'Operating Expenses': monthly_opex * yearly_months,
-        'Rent Payment': monthly_rent * yearly_months,
+        'Operating Expenses': rent.price['monthly_opex'] * yearly_months * np.power(1 + rent.exponent['opex_inflation'], years),
+        'Rent Payment': rent.price['monthly_rent'] * yearly_months * np.power(1 + rent.exponent['rent_appreciation'], years),
         'Total Annual Expenses': 0,
         'Total Annual Cashflow': 0,
         'Cash on Cash ROI': 0,
-        'Stock Value':  values,
+        'Stock Value':  margi.price['stock_value'] * np.power(1 + margi.exponent['yearly_val_apprec'], years),
         'Loan Balance': margi.mort.df['Remaining Balance'],
         'Equity': 0,
         'Equity Gain': 0,

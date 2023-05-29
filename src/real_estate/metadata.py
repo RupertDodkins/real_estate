@@ -238,3 +238,30 @@ class Margin():
             f"Monthly Outflow: ${self.price['owning_expenses']+self.price['monthly_PI']:.2f}\n"
             f"Stock Value Appreciation: {self.exponent['yearly_val_apprec']*100}%"
          )
+    
+class Renter():
+    """ Holds the metadata associated with renting from someone else """
+    def __init__(self, monthly_rent, monthly_opex, rent_appreciation, opex_inflation):
+        self.time = {}
+        self.price = {
+            'monthly_rent': monthly_rent,
+            'monthly_opex': monthly_opex,
+        } 
+        self.exponent ={
+            'rent_appreciation': rent_appreciation,
+            'opex_inflation': opex_inflation
+        }
+        
+        self.derive_properties()
+        
+    def derive_properties(self):
+        pass
+    
+    def __str__(self):
+        return (
+            '\nRent:\n'
+            f"monthly_rent: ${self.price['monthly_rent']}\n"
+            f"monthly_opex: ${self.price['monthly_opex']}\n"
+            f"rent appreciation: {self.exponent['rent_appreciation']*100}%"
+            f"opex inflation: {self.exponent['opex_inflation']*100}%"
+         )
