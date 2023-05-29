@@ -40,13 +40,20 @@ class YearlySummary:
             annual_data['Equity'] = annual_data['Property Value'] - annual_data['Loan Balance']
 
             if year == 0:
-                equity_gain = annual_data['Equity']
+                equity_gain = annual_data['Equity'] - self.cash_required
             else:
                 equity_gain = annual_data['Equity'] - data[year-1]['Equity']
             
             annual_data['Equity Gain'] = equity_gain
             annual_data['Annual Profit'] = annual_data['Equity Gain'] + annual_data['Total Annual Cashflow']
-            annual_data['Annualized Total Return'] = (annual_data['Annual Profit'] / self.cash_required)
+
+            if year == 0:
+                annual_data['Return on Equity'] = annual_data['Annual Profit'] / self.cash_required
+            else:
+                annual_data['Return on Equity'] = annual_data['Annual Profit'] / data[year-1]['Equity']
+
+            annual_data['Cummulative Profit'] = np.sum([d['Annual Profit'] for d in data]) + annual_data['Annual Profit']
+            annual_data['Return on Initial Investment'] = annual_data['Cummulative Profit'] / self.cash_required
 
             data.append(annual_data)
 
