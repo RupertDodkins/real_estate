@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from IPython.display import display, Image
 
-def plot_timeseries(column_pairs, df1, df2, title='', df_titles=[], colors=['blue', 'red']):
+def plot_timeseries(column_pairs, df1, df2, title='', df_titles=[], colors=['blue', 'red'], dynamic=False):
     """
     Function to plot pairs of time series on the same axes using Plotly.
 
@@ -53,8 +53,6 @@ def plot_timeseries(column_pairs, df1, df2, title='', df_titles=[], colors=['blu
             marker=dict(color=colors[1])
         ), row=row, col=col)
 
-        print(isinstance(pair, str), row, col, pair, i)
-
         if i == 1:
             fig['layout']['yaxis'].update(title_text=label)
             fig['layout']['xaxis'].update(title_text='Months')
@@ -85,56 +83,11 @@ def plot_timeseries(column_pairs, df1, df2, title='', df_titles=[], colors=['blu
             x=0.01
         )
     )
-    
-    # fig['data'][0]['name']='Sepal length'
 
-    # Create image and display
-    # image_bytes = fig.to_image(format='png')
-    # display(Image(image_bytes))
 
-    fig.show()
 
-# def plot_timeseries(column_pairs, df1, df2, title):
-#     """
-#     Function to plot pairs of time series on the same axes using Plotly.
-
-#     Args:
-#         column_pairs: A list of tuples or strings. Each tuple represents a pair of column headers.
-#         df1: A pandas DataFrame containing the first set of time series.
-#         df2: A pandas DataFrame containing the second set of time series.
-#     """
-#     n = len(column_pairs)
-#     ncols = 3
-#     nrows = math.ceil(n/ncols)
-
-#     fig = make_subplots(rows=nrows, cols=ncols, subplot_titles=[title for pair in column_pairs for title in pair])
-    
-#     for i, pair in enumerate(column_pairs):
-#         row, col = divmod(i, ncols)
-#         if isinstance(pair, tuple) or isinstance(pair, list):
-#             fig.add_trace(go.Scatter(
-#                 x=df1.index,
-#                 y=df1[pair[0]].values,
-#                 mode='lines',
-#                 name=pair[0]
-#             ), row=row+1, col=col+1)
-            
-#             fig.add_trace(go.Scatter(
-#                 x=df2.index,
-#                 y=df2[pair[1]].values,
-#                 mode='lines',
-#                 name=pair[1]
-#             ), row=row+1, col=col+1)
-#             fig.update_yaxes(title_text=pair[0], row=row+1, col=col+1)
-#             fig.update_yaxes(title_text=pair[1], row=row+1, col=col+1)
-#         else:
-#             fig.add_trace(go.Scatter(
-#                 x=df1.index,
-#                 y=df1[pair].values,
-#                 mode='lines',
-#                 name=pair
-#             ), row=row+1, col=col+1)
-#             fig.update_yaxes(title_text=pair, row=row+1, col=col+1)
-            
-#     fig.update_layout(title_text="Time series", width=1200, height=600*nrows)
-#     fig.show()
+    if dynamic:
+        fig.show()
+    else:
+        image_bytes = fig.to_image(format='png')
+        display(Image(image_bytes))
