@@ -55,10 +55,10 @@ def plot_timeseries(column_pairs, df1, df2, title='', df_titles=[], colors=['blu
 
         if i == 1:
             fig['layout']['yaxis'].update(title_text=label)
-            fig['layout']['xaxis'].update(title_text='Months')
+            fig['layout']['xaxis'].update(title_text='Years')
         else:
             fig['layout'][f'yaxis{i}'].update(title_text=label)
-            fig['layout'][f'xaxis{i}'].update(title_text='Months')
+            fig['layout'][f'xaxis{i}'].update(title_text='Years')
     
     for i in range(1, len(fig['data'])//2):
         fig['data'][2*i]['showlegend']=False

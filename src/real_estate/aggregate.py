@@ -26,6 +26,7 @@ class YearlySummary:
         self.refi_months = 12 - self.acq_months
         self.pre_refi_months = self.applicable_months_per_year(self.pre_refi.time['total_months'], total_years) #- self.rehab_months
 
+        print(f'\nInitial real estate cash required {self.cash_required}')
     def calculate_annual_data(self):
         data = []
         for year in range(0, self.total_years):
@@ -43,7 +44,7 @@ class YearlySummary:
             annual_data['Cash on Cash ROI'] = annual_data['Total Annual Cashflow'] / self.cash_required
             annual_data['Property Value'] = self.property_value(year)
             
-            annual_data['Loan Balance'] = self.acq.mort.df.iloc[year]['Remaining Balance']  # this is a simplification, in reality you would need to calculate this based on the amortization schedule of the loan
+            annual_data['Loan Balance'] = self.acq.mort.df.iloc[year]['Remaining Balance'] 
             annual_data['Equity'] = annual_data['Property Value'] - annual_data['Loan Balance']
 
             if year == 0:
@@ -72,6 +73,7 @@ class YearlySummary:
         df = pd.DataFrame(data, columns=columns)
         df.style.set_table_styles([dict(selector="th",props=[('max-width', '50px')])])
         pretty_df = df.applymap(format_with_sig_figs)
+        print('Real Estate Performance')
         display(pretty_df.head())
 
         return df
@@ -100,7 +102,7 @@ class YearlySummary:
         return pre_refi_opex + refi_opex
 
 
-def stocks_rent_performance(start_year, end_year, start_value=100, annual_return=0.08, monthly_opex=200, monthly_rent=2000):
+def stocks_rent_performance(margi, total_years=30, monthly_opex=200, monthly_rent=2000):
     """
     Function to generate a pandas DataFrame for a timeseries of stock performance.
 
@@ -113,8 +115,8 @@ def stocks_rent_performance(start_year, end_year, start_value=100, annual_return
     Returns:
         A pandas DataFrame with columns 'Year' and 'Value' representing the stock value for each year.
     """
-    years = np.arange(start_year, end_year + 1)
-    values = start_value * np.power(1 + annual_return, years - start_year)
+    years = np.arange(total_years)
+    values = margi.price['stock_value'] * np.power(1 + margi.exponent['yearly_val_apprec'], years)
     df = pd.DataFrame(
         {
         'Year': years, 
@@ -126,7 +128,7 @@ def stocks_rent_performance(start_year, end_year, start_value=100, annual_return
         'Total Annual Cashflow': 0,
         'Cash on Cash ROI': 0,
         'Stock Value':  values,
-        'Loan Balance':  0,
+        'Loan Balance': margi.mort.df['Remaining Balance'],
         'Equity': 0,
         'Equity Gain': 0,
         'Annual Profit': 0,
@@ -137,17 +139,18 @@ def stocks_rent_performance(start_year, end_year, start_value=100, annual_return
     )
     df['Total Annual Expenses'] = df['Operating Expenses'] + df['Rent Payment']
     df['Total Annual Cashflow'] = df['Total Annual Income'] - df['Total Annual Expenses']
-    df['Cash on Cash ROI'] = df['Total Annual Cashflow'] / start_value
+    df['Cash on Cash ROI'] = df['Total Annual Cashflow'] / margi.price['downpayment']
     df['Equity'] = df['Stock Value'] - df['Loan Balance']
     df['Equity Gain']= df['Equity'].diff()
-    df.at[0, 'Equity Gain'] = df.iloc[0]['Equity'] - start_value
+    df.at[0, 'Equity Gain'] = df.iloc[0]['Equity'] - margi.price['downpayment']
     df['Annual Profit'] = df['Equity Gain'] + df['Total Annual Cashflow']
     df['Return on Equity']= df['Annual Profit'] / np.roll(df['Equity'], 1)
-    df.at[0, 'Return on Equity'] = df.iloc[0]['Annual Profit'] /start_value
+    df.at[0, 'Return on Equity'] = df.iloc[0]['Annual Profit'] /margi.price['downpayment']
     df['Cummulative Profit'] = df['Annual Profit'].cumsum()
-    df['Return on Initial Investment'] = df['Cummulative Profit'] / start_value
+    df['Return on Initial Investment'] = df['Cummulative Profit'] / margi.price['downpayment']
 
     pretty_df = df.applymap(format_with_sig_figs)
+    print('Stock Performance')
     display(pretty_df.head())
 
     return df 

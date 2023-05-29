@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 from real_estate import mortgage
-from real_estate.metadata import Acquisition, Rehab, PreReFi_Rent, Refinance
+from real_estate.metadata import Acquisition, Rehab, PreReFi_Rent, Refinance, Margin
 from real_estate.aggregate import YearlySummary, stocks_rent_performance
 from real_estate.plots import plot_timeseries
 from real_estate.constants import yearly_months
@@ -35,6 +35,11 @@ def property_performance(
     ref_yearly_interest = 0.065,
     refinance_months = 9,
     refi_loan_frac = 0.8,
+    
+    margin_multiplier = 1.5,
+    stock_yearly_interest=0.05,
+    stock_value_appreciation=0.1,
+    
     title=''
 ):
     pre_refi_duration = refinance_months-rehab_months
@@ -83,15 +88,27 @@ def property_performance(
     print(str(pre_refi))
     print(str(refi))
 
+
     year_sum = YearlySummary(acq, rehab, pre_refi, refi, 30)
-    print(year_sum.cash_required)
     realestate_df = year_sum.to_dataframe()
 
-    stocks_df = stocks_rent_performance(0, 30, year_sum.cash_required)
+    stock_downpayment = year_sum.cash_required
+    stock_purchase_price = margin_multiplier * stock_downpayment
+    margi = Margin(
+        purchase_price=stock_purchase_price, 
+        downpayment=stock_downpayment, 
+        yearly_interest=stock_yearly_interest, 
+        value_appreciation=stock_value_appreciation, 
+        )
 
-    plot_timeseries([('Property Value', 'Stock Value'),  
-                     'Return on Initial Investment', 
-                     'Total Annual Cashflow'], 
-                     realestate_df, stocks_df, title=title)
+    print(str(margi))
+    stocks_df = stocks_rent_performance(margi)
 
-    return realestate_df, stocks_df
+    df_titles=['Real Estate', 'S&P + rent']
+    title= f'{df_titles[0]} vs {df_titles[1]}'
+    plot_timeseries(['Total Annual Cashflow', 
+                    ('Cummulative Value', ('Property Value', 'Stock Value')),  
+                        'Return on Initial Investment'], 
+                        realestate_df, stocks_df, title=title, df_titles=df_titles)
+
+    return realestate_df, stocks_df, (acq, rehab, pre_refi, refi, margi)
