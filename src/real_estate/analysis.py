@@ -3,28 +3,9 @@ import numpy as np
 
 from real_estate import mortgage
 from real_estate.metadata import Acquisition, Rehab, PreReFi_Rent, Refinance
-from real_estate.aggregate import YearlySummary
+from real_estate.aggregate import YearlySummary, stocks_rent_performance
 from real_estate.plots import plot_timeseries
-
-def generate_stock_performance(start_year, end_year, start_value=100, annual_return=0.08):
-    """
-    Function to generate a pandas DataFrame for a timeseries of stock performance.
-
-    Args:
-        start_year: The year to start the simulation.
-        end_year: The year to end the simulation.
-        start_value: The starting value of the stock. Defaults to 100.
-        annual_return: The annual return rate. Defaults to 0.08 (8%).
-
-    Returns:
-        A pandas DataFrame with columns 'Year' and 'Value' representing the stock value for each year.
-    """
-    years = np.arange(start_year, end_year + 1)
-    values = start_value * np.power(1 + annual_return, years - start_year)
-    df = pd.DataFrame({'Year': years, 'Value': values})
-    df['Return on Initial Investment'] = df['Value']/df.iloc[0]['Value']
-
-    return df 
+from real_estate.constants import yearly_months
 
 
 def property_performance(
@@ -53,7 +34,8 @@ def property_performance(
     # refinanced rental period 
     ref_yearly_interest = 0.065,
     refinance_months = 9,
-    
+    refi_loan_frac = 0.8,
+    title=''
 ):
     pre_refi_duration = refinance_months-rehab_months
     acq = Acquisition(
@@ -92,7 +74,8 @@ def property_performance(
         value_appreciation=value_appreciation,
         rent_appreciation=rent_appreciation, 
         opex_inflation=opex_inflation, 
-        owning_expenses=acq.price['owning_expenses']
+        owning_expenses=acq.price['owning_expenses'],
+        loan_frac=refi_loan_frac
         )
     
     print(str(acq))
@@ -102,12 +85,13 @@ def property_performance(
 
     year_sum = YearlySummary(acq, rehab, pre_refi, refi, 30)
     print(year_sum.cash_required)
-    df = year_sum.to_dataframe()
+    realestate_df = year_sum.to_dataframe()
 
-    stocks_df = generate_stock_performance(0, 30, year_sum.cash_required)
+    stocks_df = stocks_rent_performance(0, 30, year_sum.cash_required)
 
-    metric = 'Return on Initial Investment'
-    plot_timeseries(stocks_df[metric], 
-                    df[metric], 
-                    ['S&P', 'Real Estate', metric])
-    return df
+    plot_timeseries([('Property Value', 'Stock Value'),  
+                     'Return on Initial Investment', 
+                     'Total Annual Cashflow'], 
+                     realestate_df, stocks_df, title=title)
+
+    return realestate_df, stocks_df

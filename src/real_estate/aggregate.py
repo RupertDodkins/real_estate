@@ -4,6 +4,13 @@ from IPython.display import display
 
 from real_estate.constants import yearly_months
 
+
+def format_with_sig_figs(x):
+    if x == 0:
+        return "0"
+    else:
+        return "{:,.2f}".format(round(x, 2 - int(np.floor(np.log10(abs(x))))))
+
 class YearlySummary:
     def __init__(self, acq, rehab, pre_refi, refi, total_years):
         self.acq = acq
@@ -64,8 +71,8 @@ class YearlySummary:
         columns = data[0].keys()
         df = pd.DataFrame(data, columns=columns)
         df.style.set_table_styles([dict(selector="th",props=[('max-width', '50px')])])
-        pretty_df = df.applymap(self.format_with_sig_figs)
-        display(pretty_df)
+        pretty_df = df.applymap(format_with_sig_figs)
+        display(pretty_df.head())
 
         return df
     
@@ -88,12 +95,59 @@ class YearlySummary:
         return acq_period_value + ref_period_value
     
     def operating_expenses(self, year):
-        pre_refi_opex = self.pre_refi.price['monthly_OpEx'] * self.pre_refi_months[year] * (1+self.pre_refi.exponent['yearly_rent_apprec'])**year
-        refi_opex = self.refi.price['monthly_OpEx'] * self.refi_months[year] * (1+self.refi.exponent['yearly_rent_apprec'])**year
+        pre_refi_opex = self.pre_refi.price['monthly_OpEx'] * self.pre_refi_months[year] * (1+self.pre_refi.exponent['yearly_opex_inflation'])**year
+        refi_opex = self.refi.price['monthly_OpEx'] * self.refi_months[year] * (1+self.refi.exponent['yearly_opex_inflation'])**year
         return pre_refi_opex + refi_opex
 
-    def format_with_sig_figs(self, x):
-        if x == 0:
-            return "0"
-        else:
-            return "{:,.2f}".format(round(x, 2 - int(np.floor(np.log10(abs(x))))))
+
+def stocks_rent_performance(start_year, end_year, start_value=100, annual_return=0.08, monthly_opex=200, monthly_rent=2000):
+    """
+    Function to generate a pandas DataFrame for a timeseries of stock performance.
+
+    Args:
+        start_year: The year to start the simulation.
+        end_year: The year to end the simulation.
+        start_value: The starting value of the stock. Defaults to 100.
+        annual_return: The annual return rate. Defaults to 0.08 (8%).
+
+    Returns:
+        A pandas DataFrame with columns 'Year' and 'Value' representing the stock value for each year.
+    """
+    years = np.arange(start_year, end_year + 1)
+    values = start_value * np.power(1 + annual_return, years - start_year)
+    df = pd.DataFrame(
+        {
+        'Year': years, 
+        # 'Return on Initial Investment': df['Value']/df.iloc[0]['Value'],
+        'Total Annual Income': 0,
+        'Operating Expenses': monthly_opex * yearly_months,
+        'Rent Payment': monthly_rent * yearly_months,
+        'Total Annual Expenses': 0,
+        'Total Annual Cashflow': 0,
+        'Cash on Cash ROI': 0,
+        'Stock Value':  values,
+        'Loan Balance':  0,
+        'Equity': 0,
+        'Equity Gain': 0,
+        'Annual Profit': 0,
+        'Return on Equity': 0,
+        'Cummulative Profit': 0,
+        'Return on Initial Investment': 0
+        }
+    )
+    df['Total Annual Expenses'] = df['Operating Expenses'] + df['Rent Payment']
+    df['Total Annual Cashflow'] = df['Total Annual Income'] - df['Total Annual Expenses']
+    df['Cash on Cash ROI'] = df['Total Annual Cashflow'] / start_value
+    df['Equity'] = df['Stock Value'] - df['Loan Balance']
+    df['Equity Gain']= df['Equity'].diff()
+    df.at[0, 'Equity Gain'] = df.iloc[0]['Equity'] - start_value
+    df['Annual Profit'] = df['Equity Gain'] + df['Total Annual Cashflow']
+    df['Return on Equity']= df['Annual Profit'] / np.roll(df['Equity'], 1)
+    df.at[0, 'Return on Equity'] = df.iloc[0]['Annual Profit'] /start_value
+    df['Cummulative Profit'] = df['Annual Profit'].cumsum()
+    df['Return on Initial Investment'] = df['Cummulative Profit'] / start_value
+
+    pretty_df = df.applymap(format_with_sig_figs)
+    display(pretty_df.head())
+
+    return df 

@@ -1,41 +1,140 @@
+import numpy as np
+import math
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from IPython.display import display, Image
 
-def plot_timeseries(time_series1, time_series2, labels):
+def plot_timeseries(column_pairs, df1, df2, title='', df_titles=[], colors=['blue', 'red']):
     """
-    Function to plot two time series on the same axis using Plotly.
+    Function to plot pairs of time series on the same axes using Plotly.
 
     Args:
-        time_series1: A pandas Series with the dates as the index.
-        time_series2: A pandas Series with the dates as the index.
-        labels: A list of labels for the two time series and title.
+        column_pairs: A list of tuples or strings. Each tuple represents a pair of column headers.
+        df1: A pandas DataFrame containing the first set of time series.
+        df2: A pandas DataFrame containing the second set of time series.
     """
-    fig = go.Figure()
+    n = len(column_pairs)
+    cols = 3 if n >= 3 else n
+    rows = math.ceil(n / 3)
 
-    # Add traces
-    fig.add_trace(go.Scatter(
-        x=time_series1.index,
-        y=time_series1.values,
-        mode='lines',
-        name=labels[0],
-    ))
+    fig = make_subplots(rows=rows, cols=cols, horizontal_spacing=0.1)
 
-    fig.add_trace(go.Scatter(
-        x=time_series2.index,
-        y=time_series2.values,
-        mode='lines',
-        name=labels[1],
-    ))
+    for i, pair in enumerate(column_pairs, start=1):
+        row = math.ceil(i / 3)
+        col = i % 3 if i % 3 != 0 else 3
+
+        # Check if pair is a single string or a tuple of two strings
+        if isinstance(pair, tuple):
+            label, pair = pair
+            col1, col2 = pair
+        elif isinstance(pair, str):
+            label = col1 = col2 = pair
+        else:
+            raise ValueError('Each item in column_pairs must be either a string or a tuple of two strings.')
+
+        # Add traces
+        fig.add_trace(go.Scatter(
+            x=df1.index,
+            y=df1[col1].values,
+            mode='lines',
+            name=df_titles[0],
+            # name=f'{col1} (df1)',
+            line=dict(width=2, color=colors[0]),
+            marker=dict(color=colors[0])
+        ), row=row, col=col)
+
+        fig.add_trace(go.Scatter(
+            x=df2.index,
+            y=df2[col2].values,
+            mode='lines',
+            name=df_titles[1],
+            # name=f'{col2} (df2)',
+            line=dict(width=2, color=colors[1]),
+            marker=dict(color=colors[1])
+        ), row=row, col=col)
+
+        print(isinstance(pair, str), row, col, pair, i)
+
+        if i == 1:
+            fig['layout']['yaxis'].update(title_text=label)
+            fig['layout']['xaxis'].update(title_text='Months')
+        else:
+            fig['layout'][f'yaxis{i}'].update(title_text=label)
+            fig['layout'][f'xaxis{i}'].update(title_text='Months')
+    
+    for i in range(1, len(fig['data'])//2):
+        fig['data'][2*i]['showlegend']=False
+        fig['data'][2*i +1]['showlegend']=False   
 
     # Set layout attributes
     fig.update_layout(
-        title=labels[2],
-        xaxis_title="Time",
-        yaxis_title="Value",
+        title_text=title,
+        xaxis_title='Months',
+        # yaxis_title="Value",
+        width=1300,
+        height=600*rows,
         font=dict(
             family="Courier New, monospace",
             size=18,
             color="#7f7f7f"
+        ),
+        legend=dict(
+            yanchor="top",
+            y=0.99,
+            xanchor="left",
+            x=0.01
         )
     )
+    
+    # fig['data'][0]['name']='Sepal length'
+
+    # Create image and display
+    # image_bytes = fig.to_image(format='png')
+    # display(Image(image_bytes))
 
     fig.show()
+
+# def plot_timeseries(column_pairs, df1, df2, title):
+#     """
+#     Function to plot pairs of time series on the same axes using Plotly.
+
+#     Args:
+#         column_pairs: A list of tuples or strings. Each tuple represents a pair of column headers.
+#         df1: A pandas DataFrame containing the first set of time series.
+#         df2: A pandas DataFrame containing the second set of time series.
+#     """
+#     n = len(column_pairs)
+#     ncols = 3
+#     nrows = math.ceil(n/ncols)
+
+#     fig = make_subplots(rows=nrows, cols=ncols, subplot_titles=[title for pair in column_pairs for title in pair])
+    
+#     for i, pair in enumerate(column_pairs):
+#         row, col = divmod(i, ncols)
+#         if isinstance(pair, tuple) or isinstance(pair, list):
+#             fig.add_trace(go.Scatter(
+#                 x=df1.index,
+#                 y=df1[pair[0]].values,
+#                 mode='lines',
+#                 name=pair[0]
+#             ), row=row+1, col=col+1)
+            
+#             fig.add_trace(go.Scatter(
+#                 x=df2.index,
+#                 y=df2[pair[1]].values,
+#                 mode='lines',
+#                 name=pair[1]
+#             ), row=row+1, col=col+1)
+#             fig.update_yaxes(title_text=pair[0], row=row+1, col=col+1)
+#             fig.update_yaxes(title_text=pair[1], row=row+1, col=col+1)
+#         else:
+#             fig.add_trace(go.Scatter(
+#                 x=df1.index,
+#                 y=df1[pair].values,
+#                 mode='lines',
+#                 name=pair
+#             ), row=row+1, col=col+1)
+#             fig.update_yaxes(title_text=pair, row=row+1, col=col+1)
+            
+#     fig.update_layout(title_text="Time series", width=1200, height=600*nrows)
+#     fig.show()

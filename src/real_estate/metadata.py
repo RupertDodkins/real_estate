@@ -136,7 +136,7 @@ class PreReFi_Rent():
 class Refinance():
     """ Could inherent a Mortgage object if """
     def __init__(self, monthly_rent, home_value, vacancy_frac, repairs_frac, capex_frac, refinance_months, yearly_interest, value_appreciation,
-                 rent_appreciation, opex_inflation, owning_expenses):
+                 rent_appreciation, opex_inflation, owning_expenses, loan_frac=0.8):
         self.time =  {
             'total_months': refinance_months
         }
@@ -147,7 +147,8 @@ class Refinance():
             'repairs_frac': repairs_frac,
             'capex_frac': capex_frac,
             'monthly_PI': np.nan,
-            'owning_expenses': owning_expenses
+            'owning_expenses': owning_expenses,
+            'loan_frac': loan_frac
         } 
         self.exponent = {
             'yearly_interest': yearly_interest, #0#0.065
@@ -163,7 +164,7 @@ class Refinance():
         self.price['monthly_repairs'] = self.price['monthly_rent']*self.price['repairs_frac']
         self.price['monthly_capex'] = self.price['monthly_rent']*self.price['capex_frac']
         self.price['loan_fees'] = 0.01 * self.price['home_value']
-        self.price['mortgage'] = 0.8 * self.price['home_value'] + self.price['loan_fees']
+        self.price['mortgage'] = self.price['loan_frac'] * self.price['home_value'] + self.price['loan_fees']
         
         self.mort = Mortgage(self.exponent['yearly_interest'], self.price['mortgage'])
         self.price['monthly_PI'] = self.mort.monthly_PI

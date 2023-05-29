@@ -19,5 +19,7 @@ setup(
     python_requires='>=3.6',
     install_requires=[
         # Add your package's dependencies here
+        'plotly',
+        'kaleido',
     ],
 )
