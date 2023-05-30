@@ -11,8 +11,8 @@ def format_with_sig_figs(x):
     else:
         return "{:,.2f}".format(round(x, 2 - int(np.floor(np.log10(abs(x))))))
 
-def FV_monthly_contrib(monthly_cont, rate=0.03/12, num_contrib=360, downsamp=12):
-    FV = monthly_cont * ((1 + rate)**np.arange(1,num_contrib+1) - 1) / rate
+def FV_monthly_contrib(monthly_cont, rate=0.03/12, g=0, num_contrib=360, downsamp=12):
+    FV = monthly_cont * ((1 + rate)**np.arange(1,num_contrib+1) - (1+g)**np.arange(1,num_contrib+1)) / (rate+g)
     FV = FV[downsamp-1::downsamp]
     return FV
 
@@ -22,9 +22,9 @@ def FV_single_contrib(single_cont, rate=0.03/12, num_contrib=360, downsamp=12, s
     FV = FV[downsamp-1::downsamp]
     return FV
 
-def FV_initial_and_monthly(single_cont, monthly_cont, rate=0.03, num_months=360, downsamp=12):
-    FV_single = FV_single_contrib(single_cont, rate, num_months, downsamp=downsamp)
-    FV_monthly = FV_monthly_contrib(monthly_cont, rate, num_months, downsamp=downsamp)
+def FV_initial_and_monthly(single_cont, monthly_cont, rate=0.03, num_contrib=360, downsamp=12, g=0):
+    FV_single = FV_single_contrib(single_cont, rate, num_contrib, downsamp=downsamp)
+    FV_monthly = FV_monthly_contrib(monthly_cont, rate, g=g, num_contrib=num_contrib, downsamp=downsamp)
     return FV_single+FV_monthly
 
 class YearlySummary:
@@ -138,14 +138,17 @@ def stocks_rent_performance(margi, renter, job, total_years=30):
         'Year': years, 
         # 'Return on Initial Investment': df['Value']/df.iloc[0]['Value'],
         'Stock Annual Income': 0,
-        'External Annual Income': job.price['monthly_income']*yearly_months,
+        'External Annual Income': 0,
         'Total Annual Income': 0,
         'Operating Expenses': 0,
         'Rent Payment': 0,
         'Total Annual Expenses': 0,
         'Total Annual Cashflow': 0,
         'Cash on Cash ROI': 0,
-        'Stock Value':  FV_initial_and_monthly(margi.price['stock_value'], job.price['monthly_income'], margi.exponent['yearly_val_apprec']/yearly_months),
+        'Stock Value':  FV_initial_and_monthly(margi.price['stock_value'], 
+                                               job.price['monthly_income'], 
+                                               margi.exponent['yearly_val_apprec']/yearly_months,
+                                               g=job.exponent['yearly_pay_appreciation']/yearly_months),
         'Loan Balance': margi.mort.df['Remaining Balance'],
         'Equity': 0,
         'Equity Gain': 0,
@@ -155,6 +158,8 @@ def stocks_rent_performance(margi, renter, job, total_years=30):
         'Return on Initial Investment': 0
         }
     )
+    monthly_external_income = FV_single_contrib(job.price['monthly_income'], job.exponent['yearly_pay_appreciation'], 30, downsamp=1, start=0)
+    df['External Annual Income'] = monthly_external_income*yearly_months
     monthly_opex = FV_single_contrib(renter.price['monthly_opex'], renter.exponent['opex_inflation']/yearly_months, 360, downsamp=1, start=0)
     df['Operating Expenses'] = monthly_opex.reshape(-1, yearly_months).sum(axis=1)
     monthly_rent_payment = FV_single_contrib(renter.price['monthly_rent'], renter.exponent['rent_appreciation'], 30, downsamp=1, start=0)

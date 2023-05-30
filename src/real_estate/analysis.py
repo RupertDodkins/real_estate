@@ -43,6 +43,7 @@ def property_performance(
     monthly_rent_expense=2e3,
 
     job_monthly_cashflow=2e3,
+    yearly_pay_appreciation=0.05,
     title=''
 ):
     pre_refi_duration = refinance_months-rehab_months
@@ -110,7 +111,8 @@ def property_performance(
         opex_inflation=opex_inflation, 
         )
     job = Employment(
-        monthly_income=job_monthly_cashflow
+        monthly_income=job_monthly_cashflow,
+        yearly_pay_appreciation=yearly_pay_appreciation
     )
 
     print(str(margi))

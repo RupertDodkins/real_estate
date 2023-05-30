@@ -268,12 +268,14 @@ class Renter():
     
 class Employment():
     """ Holds the metadata associated with job """
-    def __init__(self, monthly_income):
+    def __init__(self, monthly_income, yearly_pay_appreciation):
         self.time = {}
         self.price = {
             'monthly_income': monthly_income,
         } 
-        self.exponent ={}
+        self.exponent = {
+            'yearly_pay_appreciation': yearly_pay_appreciation
+        }
         
         self.derive_properties()
         
@@ -284,4 +286,5 @@ class Employment():
         return (
             '\nEmployment:\n'
             f"Monthly income: ${self.price['monthly_income']}\n"
+            f"Yearly Appreciation: {self.exponent['yearly_pay_appreciation']*100}%\n"
          )
