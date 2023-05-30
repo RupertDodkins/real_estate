@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 from real_estate import mortgage
-from real_estate.metadata import Acquisition, Rehab, PreReFi_Rent, Refinance, Margin, Renter
+from real_estate.metadata import Acquisition, Rehab, PreReFi_Rent, Refinance, Margin, Renter, Employment
 from real_estate.aggregate import YearlySummary, stocks_rent_performance
 from real_estate.plots import plot_timeseries
 from real_estate.constants import yearly_months
@@ -41,6 +41,8 @@ def property_performance(
     stock_value_appreciation=0.1,
     renter_monthly_opex = 100,
     monthly_rent_expense=2e3,
+
+    job_monthly_cashflow=2e3,
     title=''
 ):
     pre_refi_duration = refinance_months-rehab_months
@@ -101,16 +103,20 @@ def property_performance(
         yearly_interest=stock_yearly_interest, 
         value_appreciation=stock_value_appreciation, 
         )
-    rent = Renter(
+    renter = Renter(
         monthly_rent=monthly_rent_expense, 
         monthly_opex=renter_monthly_opex, 
         rent_appreciation=rent_appreciation, 
         opex_inflation=opex_inflation, 
         )
+    job = Employment(
+        monthly_income=job_monthly_cashflow
+    )
 
     print(str(margi))
-    print(str(rent))
-    stocks_df = stocks_rent_performance(margi, rent)
+    print(str(renter))
+    print(str(job))
+    stocks_df = stocks_rent_performance(margi, renter, job)
 
     df_titles=['Real Estate', 'S&P + rent']
     title= f'{df_titles[0]} vs {df_titles[1]}'

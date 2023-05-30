@@ -262,6 +262,26 @@ class Renter():
             '\nRent:\n'
             f"monthly_rent: ${self.price['monthly_rent']}\n"
             f"monthly_opex: ${self.price['monthly_opex']}\n"
-            f"rent appreciation: {self.exponent['rent_appreciation']*100}%"
-            f"opex inflation: {self.exponent['opex_inflation']*100}%"
+            f"rent appreciation: {self.exponent['rent_appreciation']*100}%\n"
+            f"opex inflation: {self.exponent['opex_inflation']*100}%\n"
+         )
+    
+class Employment():
+    """ Holds the metadata associated with job """
+    def __init__(self, monthly_income):
+        self.time = {}
+        self.price = {
+            'monthly_income': monthly_income,
+        } 
+        self.exponent ={}
+        
+        self.derive_properties()
+        
+    def derive_properties(self):
+        pass
+    
+    def __str__(self):
+        return (
+            '\nEmployment:\n'
+            f"Monthly income: ${self.price['monthly_income']}\n"
          )

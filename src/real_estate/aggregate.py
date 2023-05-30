@@ -11,6 +11,22 @@ def format_with_sig_figs(x):
     else:
         return "{:,.2f}".format(round(x, 2 - int(np.floor(np.log10(abs(x))))))
 
+def FV_monthly_contrib(monthly_cont, rate=0.03/12, num_contrib=360, downsamp=12):
+    FV = monthly_cont * ((1 + rate)**np.arange(1,num_contrib+1) - 1) / rate
+    FV = FV[downsamp-1::downsamp]
+    return FV
+
+def FV_single_contrib(single_cont, rate=0.03/12, num_contrib=360, downsamp=12, start=1):
+    """ Start==0 means first value has no appreciation """
+    FV = single_cont * (1+rate)**np.arange(start,num_contrib+start)
+    FV = FV[downsamp-1::downsamp]
+    return FV
+
+def FV_initial_and_monthly(single_cont, monthly_cont, rate=0.03, num_months=360, downsamp=12):
+    FV_single = FV_single_contrib(single_cont, rate, num_months, downsamp=downsamp)
+    FV_monthly = FV_monthly_contrib(monthly_cont, rate, num_months, downsamp=downsamp)
+    return FV_single+FV_monthly
+
 class YearlySummary:
     def __init__(self, acq, rehab, pre_refi, refi, total_years):
         self.acq = acq
@@ -102,7 +118,7 @@ class YearlySummary:
         return pre_refi_opex + refi_opex
 
 
-def stocks_rent_performance(margi, rent, total_years=30):
+def stocks_rent_performance(margi, renter, job, total_years=30):
     """
     Function to generate a pandas DataFrame for a timeseries of stock performance.
 
@@ -115,18 +131,21 @@ def stocks_rent_performance(margi, rent, total_years=30):
     Returns:
         A pandas DataFrame with columns 'Year' and 'Value' representing the stock value for each year.
     """
+
     years = np.arange(total_years)
     df = pd.DataFrame(
         {
         'Year': years, 
         # 'Return on Initial Investment': df['Value']/df.iloc[0]['Value'],
+        'Stock Annual Income': 0,
+        'External Annual Income': job.price['monthly_income']*yearly_months,
         'Total Annual Income': 0,
-        'Operating Expenses': rent.price['monthly_opex'] * yearly_months * np.power(1 + rent.exponent['opex_inflation'], years),
-        'Rent Payment': rent.price['monthly_rent'] * yearly_months * np.power(1 + rent.exponent['rent_appreciation'], years),
+        'Operating Expenses': 0,
+        'Rent Payment': 0,
         'Total Annual Expenses': 0,
         'Total Annual Cashflow': 0,
         'Cash on Cash ROI': 0,
-        'Stock Value':  margi.price['stock_value'] * np.power(1 + margi.exponent['yearly_val_apprec'], years),
+        'Stock Value':  FV_initial_and_monthly(margi.price['stock_value'], job.price['monthly_income'], margi.exponent['yearly_val_apprec']/yearly_months),
         'Loan Balance': margi.mort.df['Remaining Balance'],
         'Equity': 0,
         'Equity Gain': 0,
@@ -136,7 +155,12 @@ def stocks_rent_performance(margi, rent, total_years=30):
         'Return on Initial Investment': 0
         }
     )
+    monthly_opex = FV_single_contrib(renter.price['monthly_opex'], renter.exponent['opex_inflation']/yearly_months, 360, downsamp=1, start=0)
+    df['Operating Expenses'] = monthly_opex.reshape(-1, yearly_months).sum(axis=1)
+    monthly_rent_payment = FV_single_contrib(renter.price['monthly_rent'], renter.exponent['rent_appreciation'], 30, downsamp=1, start=0)
+    df['Rent Payment'] = monthly_rent_payment*yearly_months
     df['Total Annual Expenses'] = df['Operating Expenses'] + df['Rent Payment']
+    df['Total Annual Income'] = df['Stock Annual Income'] + df['External Annual Income']
     df['Total Annual Cashflow'] = df['Total Annual Income'] - df['Total Annual Expenses']
     df['Cash on Cash ROI'] = df['Total Annual Cashflow'] / margi.price['downpayment']
     df['Equity'] = df['Stock Value'] - df['Loan Balance']
