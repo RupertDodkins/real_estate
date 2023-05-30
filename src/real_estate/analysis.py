@@ -23,7 +23,7 @@ def property_performance(
     mortgage_years = 30,
     rehab_months = 6,
     yearly_taxes = 2140,
-    yearly_insurance = 70,
+    yearly_insurance = 1000,
 
     # initial rental period
     monthly_rent_income = 3e3,
@@ -39,12 +39,12 @@ def property_performance(
     margin_multiplier = 1.5,
     stock_yearly_interest=0.05,
     stock_value_appreciation=0.1,
-    renter_monthly_opex = 100,
+    renter_monthly_opex = 50,
     monthly_rent_expense=2e3,
 
     job_monthly_cashflow=2e3,
     yearly_pay_appreciation=0.05,
-    title=''
+    title='S&P Vs Real Estate'
 ):
     pre_refi_duration = refinance_months-rehab_months
     acq = Acquisition(
@@ -123,7 +123,8 @@ def property_performance(
     df_titles=['Real Estate', 'S&P + rent']
     title= f'{df_titles[0]} vs {df_titles[1]}'
     plot_timeseries(['Total Annual Cashflow', 
-                    ('Cummulative Value', ('Property Value', 'Stock Value')),  
+                    ('Cummulative Value', ('Property Value', 'Stock Value')), 
+                    'Return on Equity', 
                         'Return on Initial Investment'], 
                         realestate_df, stocks_df, title=title, df_titles=df_titles)
 

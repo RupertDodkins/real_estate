@@ -51,6 +51,7 @@ class Acquisition():
             f"Down Payment: ${self.price['downpayment']}\n"
             f"Loan Amount: ${self.price['mortgage']}\n"
             f"Loan Points/Fees: ${self.price['loan_fees']}\n"
+            f"Closing costs: ${self.price['closing']}\n"
             f"Loan Interest Rate: {self.exponent['yearly_interest']*100}%\n"
             f"Monthly P&I: ${self.price['monthly_PI']:.2f}\n"
             f"Owning Expenses: ${self.price['owning_expenses']:.2f}\n"
@@ -136,7 +137,7 @@ class PreReFi_Rent():
         return (
             '\nInitial Rental Period:\n'
             f"Monthly Income: ${self.price['monthly_rent']}\n"
-            f"Monthly Expenses: ${self.price['monthly_expenses']:.2f}\n"
+            f"Monthly Operating Expenses: ${self.price['monthly_OpEx']:.2f}\n"
             f"   Vacancy: ${self.price['monthly_vacancy']:.2f}\n"
             f"   Capex: ${self.price['monthly_capex']:.2f}\n"
             f"   Owning Expenses: ${self.price['owning_expenses']:.2f}\n"

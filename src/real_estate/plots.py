@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from IPython.display import display, Image
 
-def plot_timeseries(column_pairs, df1, df2, title='', df_titles=[], colors=['blue', 'red'], dynamic=False):
+def plot_timeseries(column_pairs, df1, df2, title='', df_titles=[], colors=['blue', 'red'], dynamic=False, ncols=4):
     """
     Function to plot pairs of time series on the same axes using Plotly.
 
@@ -14,14 +14,14 @@ def plot_timeseries(column_pairs, df1, df2, title='', df_titles=[], colors=['blu
         df2: A pandas DataFrame containing the second set of time series.
     """
     n = len(column_pairs)
-    cols = 3 if n >= 3 else n
-    rows = math.ceil(n / 3)
+    cols = ncols if n >= ncols else n
+    rows = math.ceil(n / ncols)
 
     fig = make_subplots(rows=rows, cols=cols, horizontal_spacing=0.1)
 
     for i, pair in enumerate(column_pairs, start=1):
-        row = math.ceil(i / 3)
-        col = i % 3 if i % 3 != 0 else 3
+        row = math.ceil(i / ncols)
+        col = i % ncols if i % ncols != 0 else ncols
 
         # Check if pair is a single string or a tuple of two strings
         if isinstance(pair, tuple):

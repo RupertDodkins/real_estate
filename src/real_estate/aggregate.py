@@ -136,7 +136,6 @@ def stocks_rent_performance(margi, renter, job, total_years=30):
     df = pd.DataFrame(
         {
         'Year': years, 
-        # 'Return on Initial Investment': df['Value']/df.iloc[0]['Value'],
         'Stock Annual Income': 0,
         'External Annual Income': 0,
         'Total Annual Income': 0,
