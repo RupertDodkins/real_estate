@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 class Mortgage():
-    def __init__(self, yearly_interest, loan_amount, mort_insur_frac=0.01, home_value=None, total_years=30):
+    def __init__(self, yearly_interest, loan_amount, mort_insur_frac=0.01, home_value=None, loan_fees=None, total_years=30):
         self.yearly_interest = yearly_interest
         self.total_years = total_years
         self.loan_amount = loan_amount
@@ -10,7 +10,10 @@ class Mortgage():
         if home_value is None:
             home_value = self.loan_amount*1.05
         self.home_value = home_value
-        self.downpayment = self.home_value-self.loan_amount
+        if loan_fees is None:
+            loan_fees = self.loan_amount*0.01
+        self.loan_fees = loan_fees
+        self.downpayment = self.home_value-self.loan_amount+self.loan_fees
         
         # self.yearly_interest /= 100
         self.monthly_interest = self.yearly_interest / 12

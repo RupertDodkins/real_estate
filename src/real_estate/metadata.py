@@ -27,14 +27,15 @@ class Acquisition():
         
     def derive_properties(self):
 #         super().__init__(self.price['yearly_interest'], 30, self.price['price'])
-        self.price['loan_fees'] = 0.01 * self.price['home_value']
-        self.price['mortgage'] = self.price['home_value'] - self.price['downpayment'] + self.price['loan_fees']
+        self.price['mortgage'] = self.price['home_value'] - self.price['downpayment']
+        self.price['loan_fees'] = 0.01 * self.price['mortgage']
+        self.price['mortgage'] = self.price['mortgage'] + self.price['loan_fees']
         self.price['closing'] = self.price['home_value'] * 0.01 
         if self.price['yearly_taxes'] == 0:
             self.price['yearly_taxes'] = self.price['home_value'] * 0.0111
         self.price['monthly_taxes'] = self.price['yearly_taxes']/yearly_months
         self.price['monthly_insurance'] = self.price['yearly_insurance']/yearly_months
-        self.mort = Mortgage(self.exponent['yearly_interest'], self.price['mortgage'])
+        self.mort = Mortgage(self.exponent['yearly_interest'], self.price['mortgage'], home_value=self.price['home_value'], loan_fees=self.price['loan_fees'])
         self.price['monthly_PMI'] = self.mort.monthly_df.iloc[0]['Mortgage Insurance']
         self.price['owning_expenses'] = self.sum_owning_expenses()
         self.price['monthly_PI'] = self.mort.monthly_PI
@@ -174,10 +175,12 @@ class Refinance():
         self.price['monthly_vacancy'] = self.price['monthly_rent']*self.price['vacancy_frac']
         self.price['monthly_repairs'] = self.price['monthly_rent']*self.price['repairs_frac']
         self.price['monthly_capex'] = self.price['monthly_rent']*self.price['capex_frac']
-        self.price['loan_fees'] = 0.01 * self.price['home_value']
-        self.price['mortgage'] = self.price['loan_frac'] * self.price['home_value'] + self.price['loan_fees']
+
+        self.price['mortgage'] = self.price['loan_frac'] * self.price['home_value']
+        self.price['loan_fees'] = 0.01 * self.price['mortgage']
+        self.price['mortgage'] = self.price['mortgage'] + self.price['loan_fees']
         
-        self.mort = Mortgage(self.exponent['yearly_interest'], self.price['mortgage'])
+        self.mort = Mortgage(self.exponent['yearly_interest'], self.price['mortgage'], home_value=self.price['home_value'], loan_fees=self.price['loan_fees'])
         self.price['monthly_PI'] = self.mort.monthly_PI
         # self.price['monthly_PI'] = monthly_PI(self.exponent['yearly_interest'], 30, self.price['mortgage'])
         self.price['monthly_OpEx'] = self.sum_opex()
