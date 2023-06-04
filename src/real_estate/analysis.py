@@ -96,7 +96,7 @@ def property_performance(
     year_sum = YearlySummary(acq, rehab, pre_refi, refi, 30)
     realestate_df = year_sum.to_dataframe()
 
-    stock_downpayment = year_sum.cash_required
+    stock_downpayment = year_sum.cash_required #+ realestate_df.iloc[0]['Equity Gain']
     stock_purchase_price = margin_multiplier * stock_downpayment
     margi = Margin(
         purchase_price=stock_purchase_price, 
