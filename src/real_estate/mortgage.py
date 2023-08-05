@@ -20,7 +20,7 @@ class Mortgage():
         self.num_payments = total_years * 12
         self.monthly_PI = self.calc_monthly_PI()
         self.monthly_df = self.amortization_df()
-        self.df = self.monthly_df.groupby('year')['Payment', 'Principal', 'Interest', 'Mortgage Insurance'].sum()
+        self.df = self.monthly_df.groupby('year')[['Payment', 'Principal', 'Interest', 'Mortgage Insurance']].sum()
         self.df['Remaining Balance'] = self.monthly_df.groupby('year')['Remaining Balance'].last()
     
     def calc_monthly_PI(self):

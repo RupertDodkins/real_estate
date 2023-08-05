@@ -96,6 +96,7 @@ class Rehab():
             f"Monthly P&I: ${self.price['monthly_PI']:.2f}\n"
             f"Rehab time: {self.time['total_months']} months\n"
             f"Owning expenses: ${self.price['owning_expenses']:.2f}"
+            f"Monthly Outflow: ${self.price['owning_expenses']+self.price['monthly_PI']:.2f}\n"
         )
     
 class PreReFi_Rent():

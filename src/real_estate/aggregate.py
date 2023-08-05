@@ -35,6 +35,12 @@ class YearlySummary:
         self.refi = refi
         self.total_years = total_years
         self.cash_required = self.acq.price['downpayment'] + self.rehab.price['total_cost'] + self.acq.price['closing']
+        monthly_acq_cost = self.acq.price['owning_expenses']+self.acq.price['monthly_PI']
+        monthly_rehab_cost = (self.rehab.price['owning_expenses']+self.rehab.price['monthly_PI'])*self.rehab.time['total_months']
+        monthly_pre_refi_cost = self.pre_refi.price['monthly_cashflow']*self.pre_refi.time['total_months']
+        monthly_refi_cost = self.refi.price['monthly_cashflow']*self.refi.time['total_months']
+        turnaround_time = self.rehab.time['total_months']+self.pre_refi.time['total_months']+self.pre_refi.time['total_months']
+        self.monthly_required = (monthly_rehab_cost + monthly_pre_refi_cost + monthly_refi_cost)/turnaround_time
         
         self.rehab_months = self.applicable_months_per_year(self.rehab.time['total_months'], total_years)
         self.rental_months = 12 - self.rehab_months
@@ -43,6 +49,7 @@ class YearlySummary:
         self.pre_refi_months = self.applicable_months_per_year(self.pre_refi.time['total_months'], total_years) #- self.rehab_months
 
         print(f'\nInitial real estate cash required {self.cash_required}')
+        print(f'Monthly real estate cash required {self.monthly_required}')
     def calculate_annual_data(self):
         data = []
         for year in range(0, self.total_years):

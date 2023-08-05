@@ -98,6 +98,7 @@ def property_performance(
 
     stock_downpayment = year_sum.cash_required #+ realestate_df.iloc[0]['Equity Gain']
     stock_purchase_price = margin_multiplier * stock_downpayment
+    monthly_cash_required = year_sum.monthly_required
     margi = Margin(
         purchase_price=stock_purchase_price, 
         downpayment=stock_downpayment, 
@@ -111,7 +112,7 @@ def property_performance(
         opex_inflation=opex_inflation, 
         )
     job = Employment(
-        monthly_income=job_monthly_cashflow,
+        monthly_income=monthly_cash_required-monthly_rent_expense,
         yearly_pay_appreciation=yearly_pay_appreciation
     )
 
